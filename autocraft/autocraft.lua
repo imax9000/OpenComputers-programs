@@ -46,16 +46,16 @@ local function autocraftItem(rs, item)
 	end
 	log("Found pattern for %q with inputs: %s", item, inputs)
 
-	local maxQty = nil
+	local maxQty = -1
 	for input, qty in pairs(inputs) do
-		local itemInfo = rs.getItem({name=item})
+		local itemInfo = rs.getItem({name=input})
 		local present = 0
 		-- getItem returns nil if item is not found.
 		if itemInfo ~= nil then present = itemInfo.size end
 
 		local enoughFor = present // qty
 		log("Input %q is present in quantity of %d, enough for %d items", input, present, enoughFor)
-		if maxQty > enoughFor or maxQty == nil then
+		if maxQty > enoughFor or maxQty == -1 then
 			maxQty = enoughFor
 		end
 	end
