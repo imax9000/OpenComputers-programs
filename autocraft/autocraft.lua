@@ -57,8 +57,12 @@ local function autocraftItem(item)
 		end
 	end
 
-	log("Scheduling a task to craft %d of %q", maxQty, item)
-	rs.scheduleTask({name=item}, maxQty)
+	if maxQty > 0 then
+		log("Scheduling a task to craft %d of %q", maxQty, item)
+		rs.scheduleTask({name=item}, maxQty)
+	else
+		log("Not enough inputs in storage to craft even one %q", item)
+	end
 end
 
 autocraftItem(args[1])
