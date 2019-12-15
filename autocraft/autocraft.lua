@@ -11,7 +11,7 @@ local requiredMethods = {
 local args, ops = shell.parse(...)
 
 local function log(...)
-	io.stderr:write(string.format(...))
+	io.stderr:write(string.format(...) .. "\n")
 end
 
 --[[--
@@ -35,11 +35,10 @@ local function getComponent()
 	error("couldn't find any attached Refined Storage components")
 end
 
-local function autocraftItem(item)
-	local rs = getComponent()
+local function autocraftItem(rs, item)
 	local pattern = rs.getPattern({name=item})
 	local inputs = {}
-	for i, input in pairs(pattern.inputs) do
+	for i, input in ipairs(pattern.inputs) do
 		local name = input[1].name
 		local qty = input.n * input[1].size  -- I've no idea if this is correct
 		if inputs[name] == nil then inputs[name] = 0 end
@@ -48,10 +47,14 @@ local function autocraftItem(item)
 	log("Found pattern for %q with inputs: %s", item, inputs)
 
 	local maxQty = nil
-	for item, qty in pairs(inputs) do
-		local size = rs.getItem({name=item}).size
-		local enoughFor = size // qty
-		log("Input %q is present in quantity of %d, enough for %d items", item, size, enoughFor)
+	for input, qty in pairs(inputs) do
+		local itemInfo = rs.getItem({name=item})
+		local present = 0
+		-- getItem returns nil if item is not found.
+		if itemInfo ~= nil then present = itemInfo.size end
+
+		local enoughFor = present // qty
+		log("Input %q is present in quantity of %d, enough for %d items", input, present, enoughFor)
 		if maxQty > enoughFor or maxQty == nil then
 			maxQty = enoughFor
 		end
@@ -65,4 +68,11 @@ local function autocraftItem(item)
 	end
 end
 
-autocraftItem(args[1])
+local rs = getComponent()
+
+if ~rs.isConnected() then
+	log("Component %q is not connected to storage controller", rs.address)
+	return
+end
+
+autocraftItem(rs, args[1])
