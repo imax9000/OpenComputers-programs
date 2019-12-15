@@ -70,7 +70,7 @@ end
 
 local rs = getComponent()
 
-if ~rs.isConnected() then
+if not rs.isConnected() then
 	log("Component %q is not connected to storage controller", rs.address)
 	return
 end
