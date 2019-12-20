@@ -158,6 +158,7 @@ local function calculateTasks(rs, patterns)
             table.insert(tasks, {
                 pattern = pattern.info,
                 quantity = canCraft,
+                slots_saved = canCraft * pattern.inputs_per_output - canCraft,
             })
         end
     end
@@ -224,9 +225,12 @@ else
         return
     end
     print("Will schedule the following crafting tasks:")
+    local savedSpace = 0
     for _, task in ipairs(tasks) do
         print(string.format(" * %d of %s (%s)", task.quantity, task.pattern.label, task.pattern.name))
+        savedSpace = savedSpace + task.slots_saved
     end
+    print(string.format("This will free %d slots in storage.", savedSpace))
     if not opts.auto then
         print("Proceed? [Y/n]")
         if not ((io.read() or "n") .. "y"):match("^%s*[Yy]") then
