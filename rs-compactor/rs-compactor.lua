@@ -23,6 +23,7 @@ Options:
   --genConfig - generate configuration file based on patterns present in
                 Refined Storage network
   -v, --verbose - enable more verbose logging
+  -q, --quiet - do not print anything, overrides --verbose and implies --auto
   --config=file - override path to config file, default is /etc/rs-compactor.cfg
 ]]
 
@@ -36,10 +37,13 @@ local requiredMethods = {
 
 local args, opts = shell.parse(...)
 local verbose = opts.v or opts.verbose
+local quiet = opts.q or opts.quiet
 local configPath = opts.config or "/etc/rs-compactor.cfg"
 
 local function log(...)
-    io.stderr:write(string.format(...) .. "\n")
+    if not quiet then
+        io.stderr:write(string.format(...) .. "\n")
+    end
 end
 
 local function vlog(...)
@@ -219,22 +223,24 @@ else
     local patterns = findPatternsWithConfig(rs, config)
     local tasks = calculateTasks(rs, patterns)
     if #tasks == 0 then
-        if not opts.auto then
+        if not opts.auto and not quiet then
             print("Nothing to craft.")
         end
         return
     end
-    print("Will schedule the following crafting tasks:")
-    local savedSpace = 0
-    for _, task in ipairs(tasks) do
-        print(string.format(" * %d of %s (%s)", task.quantity, task.pattern.label, task.pattern.name))
-        savedSpace = savedSpace + task.slots_saved
-    end
-    print(string.format("This will free %d slots in storage.", savedSpace))
-    if not opts.auto then
-        print("Proceed? [Y/n]")
-        if not ((io.read() or "n") .. "y"):match("^%s*[Yy]") then
-            return
+    if not quiet then
+        print("Will schedule the following crafting tasks:")
+        local savedSpace = 0
+        for _, task in ipairs(tasks) do
+            print(string.format(" * %d of %s (%s)", task.quantity, task.pattern.label, task.pattern.name))
+            savedSpace = savedSpace + task.slots_saved
+        end
+        print(string.format("This will free %d slots in storage.", savedSpace))
+        if not opts.auto then
+            print("Proceed? [Y/n]")
+            if not ((io.read() or "n") .. "y"):match("^%s*[Yy]") then
+                return
+            end
         end
     end
     scheduleTasks(rs, tasks)

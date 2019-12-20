@@ -11,8 +11,20 @@ local function getInterval()
     return 60 -- default to one minute
 end
 
+local function isQuiet()
+    local ok, quiet = pcall(function() return args.quiet end)
+    if ok then
+        return quiet
+    end
+    return true
+end
+
 local function run()
-    shell.execute("rs-compactor --auto")
+    local cmd = "rs-compactor --auto"
+    if isQuiet() then
+        cmd = cmd .. " --quiet"
+    end
+    shell.execute(cmd)
 end
 
 function start()
